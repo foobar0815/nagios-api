@@ -1,0 +1,29 @@
+#!/sbin/runscript
+
+NAME=nagios-api
+DAEMON=/usr/bin/nagios-api
+DAEMON_ARGS="-c /var/nagios/rw/nagios.cmd -s /var/nagios/status.dat -l /var/nagios/nagios.log"
+PIDFILE=/var/run/nagios-api/${NAME}.pid
+
+depend() {
+	need net
+	need nagios
+}
+
+start() {
+	DIRECTORY=$(dirname ${PIDFILE})
+	[ ! -d $DIRECTORY ] && mkdir -p $DIRECTORY
+	chown nagios:nagios $DIRECTORY
+
+	ebegin "Starting ${NAME}"
+		start-stop-daemon --start --quiet --background --user nagios \
+			--exec ${DAEMON} -- ${DAEMON_ARGS}
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping ${NAME}"
+		start-stop-daemon --stop --quiet \
+			--pidfile ${PIDFILE} \
+	eend $?
+}
